@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
@@ -12,12 +13,23 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
+func getTlsDialter() *kafka.Dialer {
+	return &kafka.Dialer{
+		TLS: &tls.Config{},
+	}
+}
+
 func main() {
-	r := kafka.NewReader(kafka.ReaderConfig{
+	tlsEnabled := false
+	readerConfig := kafka.ReaderConfig{
 		Brokers: []string{"localhost:9091", "localhost:9092", "localhost:9093"},
 		GroupID: "cg1",
 		Topic:   "shiva",
-	})
+	}
+	if tlsEnabled {
+		readerConfig.Dialer = getTlsDialter()
+	}
+	r := kafka.NewReader(readerConfig)
 	defer r.Close()
 
 	exitCtx, _ := signal.NotifyContext(context.Background(), syscall.SIGINT)

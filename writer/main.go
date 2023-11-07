@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"os"
 	"os/signal"
@@ -18,9 +19,18 @@ var (
 )
 
 func main() {
+	tlsEnabled := false
 	w = &kafka.Writer{
 		Addr:  kafka.TCP("localhost:9091", "localhost:9092", "localhost:9093"),
 		Topic: "shiva",
+	}
+	transport := &kafka.Transport{
+		DialTimeout: 5 * time.Second,
+		IdleTimeout: 30 * time.Second,
+		ClientID:    "kafka-reader-golang",
+	}
+	if tlsEnabled {
+		transport.TLS = &tls.Config{}
 	}
 	defer w.Close()
 
